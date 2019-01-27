@@ -1,0 +1,8 @@
+applications:
+- path: .
+  memory: 256M
+  instances: 1
+  name: Twitterscreen
+  routes:
+  - route: <your url here>
+  disk_quota: 1024M
