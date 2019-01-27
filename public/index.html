@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+  <meta charset="UTF-8">
+  <title>Twitter</title>
+  
+  
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css'>
+<link rel='stylesheet' href='https://use.fontawesome.com/releases/v5.0.9/css/all.css'>
+<link rel='stylesheet' href='https://cssgram-cssgram.netdna-ssl.com/cssgram.min.css'>
+
+<link rel="stylesheet" href="css/style.css">
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.min.js"></script> 
+<script src="js/jquery.min.js"></script>
+<script>
+/*eslint-disable no-undef, no-undef, no-unused-vars*/
+function getNextHelp() {
+	console.log("tweet clicked!");  // will be called for every btn on page
+    var nextHelp = $(this).parent().nextAll(); // get next tweets to check if we should scroll
+	if (typeof nextHelp[0] !== 'undefined') {
+	//console.log("nextHelp text: " + nextHelp[0].innerText + ", height: " + nextHelp[0].offsetHeight);
+	if (nextHelp[0]) {
+		var $target = $(nextHelp[0]);
+  		//console.log($target);
+  		if (typeof $target.offset() === 'undefined' || $target.offset() === null) {
+  			console.log("Scroll one down");
+  			scroll_down();
+  		} else {
+  			
+  			var pos = 50;   // phone header to define before test
+  			var $element = $(this).parent('div#tweet.tweet:first').prev('div#tweet.tweet');
+
+	  		if ($element) {
+	  			//console.log("prev offsetHeight: " + $element.prevObject[0].offsetHeight);
+	  			
+	  			// how about this offset?
+	  			pos = $element.prevObject[0].offsetTop - 40;
+	  		}	
+	  		
+	  		console.log("Doing animation with offset to tweet: " + pos);
+	        //$('html, body').animate({scrollTop:$target.offset().top}, 5000);
+    	    $('div#feed').animate({scrollTop:pos}, 5000, 'swing', function () {
+          			console.log("Done animating");
+      			});
+      	}
+	}
+	}
+}
+</script>
+<script type="text/javascript">
+$(document).ready(function(){
+   $(window).scroll(function() {
+    //if ($("#feed").scrollTop() > 1) {
+      //scroll_down();
+      //tweets.unshift(tweets[2]);
+    //}
+    console.log("Is this ever triggered?");
+   });
+  
+    // listen for clicks
+    //$("#tweet").click(getNextHelp);  // we are using dynamic content, so must be selector
+    $(document).on("click", ".btn", getNextHelp);
+  
+  // cannot get the buttons before the dynamic content is loaded!
+  //var buttons = document.getElementById('feed').querySelectorAll('[class^="btn"]');
+  var a_buttons = [];
+  
+  // doesn't work for some reason? I guess it is too early, the tweets haven't been loaded on the page yet!
+  document.querySelectorAll('div#tweet.tweet').forEach(function(node) {
+       console.log("Node: " + node);
+	});
+ 
+  var i = 0;
+  setInterval(function(){
+     		// do some stuff
+     		// if first time, go and get buttons
+     		if (i === 0) {
+     			var buttons = document.getElementById('feed').querySelectorAll('[class^="btn"]');
+     			for(var j=0;j<buttons.length;j++) { a_buttons.push(buttons[j]);}
+     			i++;
+     		} else {
+     			// buttons.forEach(function(el_btn){a_buttons.push(el_btn);});
+     			var cbtn = a_buttons[i];  // we don't have to click the first, since it has been showing for approx 15 sec already
+     		
+     			// click on this btn
+     			console.log("Clicking btn in array, index no: " + i);
+     			i++;
+     			$(cbtn).click();
+     		}
+  			//$(".tweet :button").click();
+  			if (i+1>a_buttons.length) {  // we have done all buttons, but the last, let's make it a bit more fun and shift the list and potentially have new tweets
+  				// reset counter and array
+  				i=0;
+  				a_buttons = [];
+  				scroll_down();
+  				 $('div#feed').animate({scrollTop:0}, 5000, 'swing', function () {
+          			console.log("Done animating");
+      			});
+  			}
+  		},15000);	
+
+  setInterval(function() { 
+      get_new_tweets();
+      //console.log("Getting new tweets...");
+      //clear autotype text and call again
+      //$(".type-js").empty();
+      $(".type-js").hide();
+      autoType(".type-js",200);
+  }, 300000);
+  
+  autoType(".type-js",200);
+  
+  
+}); // document ready
+</script>  
+</head>
+
+<body>
+<div id="my_offset" style="display:none"></div>
+  <div id="app">
+  <div class="iphone">
+     <div class="iphone-top">
+      <span class="camera"></span>
+      <span class="sensor"></span>
+      <span class="speaker"></span>
+    </div>
+    <div class="top-bar"></div>
+    <div class="iphone-screen">
+      <transition name="fade">
+        <div v-if="!step" class="loading" key="app_transition_1">
+          <i class="fab fa-twitter fa-3x" aria-hidden="true"></i>
+        </div>
+        <div v-if="step" class="app" key="app_transition_2">
+          <div class="phone-header">
+            <div v-if="step === 1"
+                 style="border-bottom: 1px solid #e6ecf1; padding-bottom: 10px;">
+              <p>Home</p>
+              <img class="img-2" alt="tweet icon"
+                   src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1211695/tweet_icon.png"
+                   @click="step++" />
+            </div>
+            <div v-if="step === 2">
+              <i class="fas fa-times" @click="goToHome"></i>
+              <button class="button is-primary is-small"
+                 @click="shareTweet"
+                 :disabled="description === ''">
+                 Tweet
+              </button>
+            </div>
+          </div>
+          <transition name="fade">
+            <div class="feed" id="feed" v-if="step === 1" v-dragscroll.y="true">
+              <tweet-component
+                v-for="tweet in tweets"
+                :tweet="tweet"
+                :key="tweets.indexOf(tweet)"
+              />
+
+            </div>
+            <div class="make-tweet" v-if="step === 2">
+              <img class="img-1" alt="bigger" src="https://pbs.twimg.com/profile_images/958258066377539584/-2zn2P57_bigger.jpg" />
+              <div class="caption-container">
+                <textarea
+                  placeholder="What's happening?"
+                  type="text"
+                  class="caption-input"
+                  maxlength="280"
+                  v-model="description">
+                </textarea>
+                <i></i>
+              </div>
+              <div class="text-limit">
+                {{description.length}}/280
+                <span class="right">Tag others with <span class="highlighted">@</span> and create hashtags with <span class="highlighted">#</span></span>
+              </div>
+              <div class="image-container" v-if="image">
+                <img :src="image" alt="circle">
+                  <i class="fas fa-times-circle"
+                     @click="image = ''">
+                  </i>
+                </img>
+              </div>
+            </div>
+          </transition>
+
+          <div class="phone-footer">
+          <div v-if="step === 1" class="step-1">
+            <div class="home-cta" @click="goToHome">
+              <i class="fas fa-home fa-lg"></i>
+            </div>
+          </div>
+          <div v-if="step === 2" class="step-2">
+            <div class="home-cta" @click="goToHome">
+              <i class="fas fa-home fa-lg"></i>
+            </div>
+            <div class="upload-cta">
+              <input type="file"
+                     name="file"
+                     id="file"
+                     class="inputfile"
+                     @change="fileUpload"
+                     v-model="fileInput"
+                     :disabled="step !== 2"/>
+              <label for="file">
+                <i class="fas fa-image fa-lg"></i>
+              </label>
+            </div>
+            <p class="helper-text">Click <a @click="uploadRandomImage">here for a random image!</a> or upload your own! <i class="fas fa-chevron-right"></i></p>
+          </div>
+        </div>
+        </div>
+      </transition>
+    </div>
+
+    <div class="iphone-buttons">
+      <span class="on-off"></span>
+      <span class="sleep"></span>
+      <span class="up"></span>
+      <span class="down"></span>
+    </div>
+    <div class="bottom-bar"></div>
+    <div class="iphone-bottom">
+      <span></span>
+    </div>
+  </div>
+  
+
+<!-- 
+AUTOTYPING:
+
+<div class="type-js headline">
+ 
+  <h1 class="text-js">Psst! Don't miss to follow IBM Client Center on Twitter! </h1>
+  
+</div> -->
+
+
+ <!-- <div class="details">
+    <a class="button is-primary is-small is-info" v-if="!showDetails" @click="showDetails = !showDetails">Details</a>
+    <ul v-else>
+      <li>Navigate the feed by <span>dragging (or scrolling)</span></li>
+      <li>Like a post with <span><i class="far fa-heart fa-lg"></i></span>
+      <li>Create tweets and upload photos!</li>
+    </ul>
+</div> -->
+<a href="https://twitter.com/ibmcctr" target="_blank" class="footer-contact">
+  <i class="fab fa-twitter" aria-hidden="true"></i>
+    </a>
+</div>
+
+<!--  Prefetch random images -->
+<link rel="prefetch" href="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1211695/tropical_beach.jpg" />
+<link rel="prefetch" href="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1211695/nice_for_what.jpeg" />
+<link rel="prefetch" href="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1211695/toronto_skyline.jpg" />
+<link rel="prefetch" href="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1211695/puppers.jpg" />
+
+<link rel="prefetch" href="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1211695/twitter_mobile.png" />
+<link rel="prefetch" href="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1211695/cn-tower.jpg" />
+<link rel="prefetch" href="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1211695/prism-goggles-at-concert.jpg" />
+<link rel="prefetch" href="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1211695/working-at-night.jpg" />
+<link rel="prefetch" href="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1211695/busy-beach.jpg" />
+<link rel="prefetch" href="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1211695/grand-canyon.jpg" />
+<link rel="prefetch" href="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1211695/carnival-lights-at-dusk.jpg" />
+<link rel="prefetch" href="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1211695/codepen_logo.png" />
+<link rel="prefetch" href="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1211695/jaden_twitter_profile.jpg" />
+<link rel="prefetch" href="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1211695/drizzy_twitter.png" />
+<link rel="prefetch" href="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1211695/me-formal.jpg" />
+<link rel="prefetch" href="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1211695/pug_personal.jpg" />
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.min.js'></script>
+<script src='https://unpkg.com/vue-dragscroll@1.3.1/dist/vue-dragscroll.min.js'></script>
+
+  
+
+    <script  src="js/index.js"></script>
+    <!-- Include jQuery ScrollTo -->
+<script src="js/jquery-scrollto/lib/jquery-scrollto.js"></script>
+
+
+
+
+</body>
+
+</html>
