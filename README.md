@@ -72,7 +72,7 @@ The options considered for the solution (and the change after YQL was deprecated
 
 https://www.raymondcamden.com/2015/12/08/parsing-rss-feeds-in-javascript-options
 
-![alt text](public/img/YQL deprecated.png)
+![alt text]("public/img/YQL deprecated.png")
 
 
 As you can see from the output from the twitter feed (xml), we don't get the number of likes. That number i generated in the app and set to a random number (1-100).
